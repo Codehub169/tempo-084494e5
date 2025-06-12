@@ -2,7 +2,7 @@ import React from 'react';
 import { tv } from 'tailwind-variants';
 
 const buttonStyles = tv({
-  base: 'font-semibold py-3 px-6 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-theme-primary-bg disabled:opacity-50 disabled:cursor-not-allowed',
+  base: 'font-semibold py-3 px-6 rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-theme-background disabled:opacity-50 disabled:cursor-not-allowed',
   variants: {
     variant: {
       accent: 'bg-theme-accent text-theme-button-text hover:bg-theme-accent-hover focus:ring-theme-accent shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0',
