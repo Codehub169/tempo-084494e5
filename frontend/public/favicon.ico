@@ -1,0 +1,9 @@
+<!--
+  This is a placeholder for favicon.ico.
+  To create a real favicon for your Serpent Dash game, you can:
+  1. Design a simple icon (e.g., a stylized snake head, or the initials 'SD').
+  2. Use an online favicon generator to convert your image (e.g., PNG, SVG) into an .ico file.
+     Many generators can create multiple sizes for different platforms.
+  3. Replace this placeholder file with your generated favicon.ico in the `frontend/public/` directory.
+  A common size for a favicon is 32x32 pixels, but .ico files can contain multiple sizes.
+-->

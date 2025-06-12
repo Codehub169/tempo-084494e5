@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-theme-primary-bg: #10101a;
+    --color-theme-secondary-bg: #181828;
+    --color-theme-accent: #00f0c0;
+    --color-theme-accent-hover: #00d0a0;
+    --color-theme-text: #e0e0e0;
+    --color-theme-title: #ffffff;
+    --color-theme-button-text: #10101a;
+    --color-theme-danger: #ff4757;
+    --color-theme-game-bg: #181828; /* From game.html canvas bg */
+    --color-theme-snake-head: #32ff7e; /* From game.html snake head */
+    --color-theme-food: #ff6b81; /* From game.html food */
+    --color-theme-controls-bg: #1f1f30; /* From game.html controls area */
+    /* --color-theme-snake-color is same as --color-theme-accent */
+    /* --color-theme-button-active-bg is same as --color-theme-accent-hover */
+  }
+
+  html {
+    @apply h-full;
+  }
+  body {
+    @apply h-full font-inter bg-theme-primary-bg text-theme-text flex justify-center items-center text-center overflow-x-hidden;
+  }
+  #root {
+    /* Ensure #root takes full width and height to allow pages to fill screen */
+    @apply w-full h-full flex flex-col justify-center items-center;
+  }
+}
+
+@layer utilities {
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+  }
+  .shadow-top-md {
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+  }
+}
