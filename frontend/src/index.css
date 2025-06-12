@@ -26,7 +26,8 @@
     @apply h-full;
   }
   body {
-    @apply h-full font-inter bg-theme-primary-bg text-theme-text flex justify-center items-center text-center overflow-x-hidden;
+    /* font-sans is configured to 'Inter' in tailwind.config.js */
+    @apply h-full font-sans bg-theme-primary-bg text-theme-text flex justify-center items-center text-center overflow-x-hidden;
   }
   #root {
     /* Ensure #root takes full width and height to allow pages to fill screen */

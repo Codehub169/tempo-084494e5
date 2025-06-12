@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 function StartPage({ onStartGame }) {
   return (
@@ -9,7 +10,7 @@ function StartPage({ onStartGame }) {
       >
         Serpent Dash
       </h1>
-      <p className="text-lg sm:text-xl text-theme-text opacity-80 mb-8 font-inter">
+      <p className="text-lg sm:text-xl text-theme-text opacity-80 mb-8 font-sans">
         A modern twist on a classic game.
       </p>
       <button 
@@ -18,7 +19,7 @@ function StartPage({ onStartGame }) {
       >
         Start Game
       </button>
-      <div className="mt-9 text-sm sm:text-base text-theme-text opacity-70 font-inter">
+      <div className="mt-9 text-sm sm:text-base text-theme-text opacity-70 font-sans">
         <p className="mb-2"><strong className="text-theme-accent font-semibold">Controls:</strong></p>
         <p className="mb-1"><strong>Desktop:</strong> Arrow Keys or WASD</p>
         <p><strong>Mobile:</strong> On-screen D-pad</p>
@@ -26,5 +27,9 @@ function StartPage({ onStartGame }) {
     </div>
   );
 }
+
+StartPage.propTypes = {
+  onStartGame: PropTypes.func.isRequired,
+};
 
 export default StartPage;
