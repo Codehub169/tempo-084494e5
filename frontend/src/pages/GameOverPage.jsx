@@ -1,4 +1,6 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import Button from '../components/ui/Button';
 
 function GameOverPage({ score, onPlayAgain, onGoHome }) {
   return (
@@ -13,21 +15,29 @@ function GameOverPage({ score, onPlayAgain, onGoHome }) {
         </span>
       </div>
       <div className="mt-8 flex flex-col sm:flex-row sm:justify-center gap-4">
-        <button 
+        <Button 
           onClick={onPlayAgain} 
-          className="bg-theme-accent text-theme-button-text text-lg sm:text-xl font-poppins font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-theme-accent-hover hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-theme-accent focus:ring-opacity-50 transform hover:-translate-y-0.5 active:translate-y-0 w-full sm:w-auto min-w-[180px]"
+          variant="accent"
+          className="text-lg sm:text-xl font-poppins min-w-[180px] w-full sm:w-auto"
         >
           Play Again
-        </button>
-        <button 
+        </Button>
+        <Button 
           onClick={onGoHome} 
-          className="bg-[#3a3a50] hover:bg-[#4a4a60] text-theme-text text-lg sm:text-xl font-poppins font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-50 transform hover:-translate-y-0.5 active:translate-y-0 w-full sm:w-auto min-w-[180px]"
+          variant="subtle"
+          className="text-lg sm:text-xl font-poppins min-w-[180px] w-full sm:w-auto"
         >
           Main Menu
-        </button>
+        </Button>
       </div>
     </div>
   );
 }
+
+GameOverPage.propTypes = {
+  score: PropTypes.number.isRequired,
+  onPlayAgain: PropTypes.func.isRequired,
+  onGoHome: PropTypes.func.isRequired,
+};
 
 export default GameOverPage;
