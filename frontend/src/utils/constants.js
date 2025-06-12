@@ -36,8 +36,8 @@ export const KEY_DIRECTIONS = {
 };
 
 // API Endpoint
-// The backend server will run on port 9000 and serve the API from there.
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:9000/api';
+// Backend serves frontend, so API calls are relative to the current origin
+export const API_BASE_URL = '/api';
 
 // Local Storage Keys
 export const LOCAL_STORAGE_LAST_SCORE_KEY = 'serpentDashLastScore';
