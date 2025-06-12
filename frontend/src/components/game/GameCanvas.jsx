@@ -1,15 +1,16 @@
 import React, { useRef, useEffect, useLayoutEffect, useState, useCallback } from 'react';
-
-// Hex colors from HTML previews / Tailwind config
-const SNAKE_COLOR = '#00f0c0';       // theme-snake / var(--snake-color)
-const SNAKE_HEAD_COLOR = '#32ff7e';  // theme-snake-head / var(--snake-head-color)
-const FOOD_COLOR = '#ff6b81';       // theme-food / var(--food-color)
-const CANVAS_BG_COLOR = '#181828';  // theme-game-bg / var(--game-bg)
+import {
+  SNAKE_COLOR,
+  SNAKE_HEAD_COLOR,
+  FOOD_COLOR,
+  CANVAS_BG_COLOR,
+  GAME_OVER_TEXT_COLOR
+} from '../../utils/constants';
 
 const GameCanvas = ({ snake, food, gridSize, isGameOver, isRunning }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
-  const [tileSize, setTileSize] = useState(0); // Initialize with 0 to ensure first calc
+  const [tileSize, setTileSize] = useState(0);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   const drawGame = useCallback(() => {
@@ -20,28 +21,28 @@ const GameCanvas = ({ snake, food, gridSize, isGameOver, isRunning }) => {
     ctx.fillStyle = CANVAS_BG_COLOR;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    if (food) {
+    if (food && food.x !== undefined && food.y !== undefined) {
       ctx.fillStyle = FOOD_COLOR;
       ctx.beginPath();
       ctx.arc(
         food.x * tileSize + tileSize / 2,
         food.y * tileSize + tileSize / 2,
-        tileSize / 2.8, // Slightly smaller than cell, as in HTML example (2.5)
+        tileSize / 2.8, 
         0,
         2 * Math.PI
       );
       ctx.fill();
     }
 
-    if (snake) {
+    if (snake && snake.length > 0) {
       snake.forEach((segment, index) => {
         ctx.fillStyle = index === 0 ? SNAKE_HEAD_COLOR : SNAKE_COLOR;
-        const segmentRadius = (tileSize - (index === 0 ? 1 : 2.5)) / 2; // Head slightly fuller
+        const segmentRadius = (tileSize - (index === 0 ? 1 : 2.5)) / 2;
         ctx.beginPath();
         ctx.arc(
             segment.x * tileSize + tileSize / 2,
             segment.y * tileSize + tileSize / 2,
-            Math.max(1, segmentRadius), // Ensure radius is at least 1
+            Math.max(1, segmentRadius),
             0, 2 * Math.PI
         );
         ctx.fill();
@@ -49,36 +50,39 @@ const GameCanvas = ({ snake, food, gridSize, isGameOver, isRunning }) => {
     }
 
     if (isGameOver) {
-      ctx.fillStyle = 'rgba(16, 16, 26, 0.85)'; // Darker overlay, matching primary-bg with alpha
+      ctx.fillStyle = 'rgba(16, 16, 26, 0.85)'; // Darker overlay, theme-background with alpha
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      const fontSize = Math.max(16, tileSize * 1.5); // Responsive font size
+      const fontSize = Math.max(16, tileSize * 1.5);
       ctx.font = `bold ${fontSize}px Poppins`; 
-      ctx.fillStyle = '#F44336'; // theme-danger
+      ctx.fillStyle = GAME_OVER_TEXT_COLOR;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
     }
-  }, [snake, food, tileSize, gridSize, isGameOver, canvasSize]); // Added canvasSize
+  }, [snake, food, tileSize, gridSize, isGameOver, canvasSize, SNAKE_COLOR, SNAKE_HEAD_COLOR, FOOD_COLOR, CANVAS_BG_COLOR, GAME_OVER_TEXT_COLOR]);
 
   useLayoutEffect(() => {
     const calculateAndSetSize = () => {
-      if (containerRef.current && canvasRef.current) {
+      if (containerRef.current && canvasRef.current && gridSize > 0) {
         const container = containerRef.current;
         const availableWidth = container.clientWidth;
         const availableHeight = container.clientHeight;
         
-        const maxDim = Math.min(availableWidth, availableHeight) - 20; // -20 for some padding around canvas
+        const maxDim = Math.min(availableWidth, availableHeight) - 10; 
         const newTileSize = Math.max(5, Math.floor(maxDim / gridSize)); 
         
         const newCanvasWidth = gridSize * newTileSize;
         const newCanvasHeight = gridSize * newTileSize;
 
-        setTileSize(newTileSize);
-        setCanvasSize({ width: newCanvasWidth, height: newCanvasHeight });
-
-        // Directly set canvas element size after state update is processed
-        // This will be handled by the useEffect for canvasRef.current properties
+        if (newTileSize > 0 && newCanvasWidth > 0 && newCanvasHeight > 0) {
+          setTileSize(newTileSize);
+          setCanvasSize({ width: newCanvasWidth, height: newCanvasHeight });
+        } else {
+          // Fallback if calculation results in invalid dimensions
+          setTileSize(0);
+          setCanvasSize({ width: 0, height: 0 });
+        }
       }
     };
 
@@ -87,29 +91,23 @@ const GameCanvas = ({ snake, food, gridSize, isGameOver, isRunning }) => {
     return () => window.removeEventListener('resize', calculateAndSetSize);
   }, [gridSize]);
 
-  // Effect to update canvas actual width/height when canvasSize state changes
   useEffect(() => {
-    if (canvasRef.current) {
+    if (canvasRef.current && canvasSize.width > 0 && canvasSize.height > 0) {
       canvasRef.current.width = canvasSize.width;
       canvasRef.current.height = canvasSize.height;
-      // After canvas dimensions are set, trigger a draw if game is running or just ended
-      if (isRunning || isGameOver || (snake && snake.length > 0)) {
-        drawGame();
-      }
+      drawGame(); 
+    } else if (canvasRef.current) {
+       // Clear canvas if size is invalid to prevent showing stale content
+      canvasRef.current.width = 0;
+      canvasRef.current.height = 0;
     }
-  }, [canvasSize, isRunning, isGameOver, snake, drawGame]);
-
-  // Initial and subsequent draws
-  useEffect(() => {
-    drawGame();
-  }, [drawGame]); // drawGame is memoized and includes all its dependencies
+  }, [canvasSize, drawGame]);
 
   return (
-    <div ref={containerRef} className="w-full h-full flex justify-center items-center p-2 sm:p-4">
+    <div ref={containerRef} className="w-full h-full flex justify-center items-center p-1 sm:p-2">
       <canvas 
         ref={canvasRef} 
-        className="bg-theme-game-bg rounded-lg shadow-xl"
-        // Width and height are set dynamically via JS
+        className="bg-theme-surface rounded-lg shadow-xl"
       />
     </div>
   );

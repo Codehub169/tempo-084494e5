@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-
-// Constants that would ideally be in frontend/src/utils/constants.js
-const GRID_SIZE = 20;
-const INITIAL_SNAKE_LENGTH = 3;
-const GAME_SPEED_MS = 150; // milliseconds per game tick
+import {
+  GRID_SIZE,
+  INITIAL_SNAKE_LENGTH,
+  GAME_SPEED_MS,
+  KEY_DIRECTIONS
+} from '../utils/constants';
 
 const DIRECTIONS = {
   UP: { x: 0, y: -1 },
@@ -40,6 +41,11 @@ export function useGameEngine({ onGameOver }) {
   const [isRunning, setIsRunning] = useState(false);
   const gameLoopTimeoutRef = useRef(null);
 
+  const snakeRef = useRef(snake);
+  useEffect(() => {
+    snakeRef.current = snake;
+  }, [snake]);
+
   const resetGameState = useCallback(() => {
     const startX = Math.floor(GRID_SIZE / 2);
     const startY = Math.floor(GRID_SIZE / 2);
@@ -48,29 +54,18 @@ export function useGameEngine({ onGameOver }) {
       initialSnake.push({ x: startX - i, y: startY });
     }
     setSnake(initialSnake);
+    snakeRef.current = initialSnake;
 
     currentDirectionRef.current = 'RIGHT';
     nextDirectionRef.current = 'RIGHT';
     setScore(0);
     setIsGameOver(false);
-    setFood(getRandomPosition(GRID_SIZE, initialSnake));
-  }, []);
-
-  const generateNewFood = useCallback(() => {
-    setFood(currentSnake => getRandomPosition(GRID_SIZE, currentSnake));
-  }, []);
-  
-  // This effect ensures generateNewFood uses the most up-to-date snake state for food placement.
-  // It's a common pattern when a callback needs latest state but shouldn't cause re-creation of another effect/callback.
-  const snakeRef = useRef(snake);
-  useEffect(() => {
-    snakeRef.current = snake;
-  }, [snake]);
+    setFood(getRandomPosition(GRID_SIZE, initialSnake)); 
+  }, []); // GRID_SIZE, INITIAL_SNAKE_LENGTH are module constants, not reactive
 
   const generateFood = useCallback(() => {
     setFood(getRandomPosition(GRID_SIZE, snakeRef.current));
-  }, []);
-
+  }, []); // GRID_SIZE is a module constant, snakeRef.current is a ref
 
   const startGame = useCallback(() => {
     resetGameState();
@@ -82,18 +77,11 @@ export function useGameEngine({ onGameOver }) {
     if (currentDirectionRef.current !== OPPOSITE_DIRECTIONS[requestedDirection]) {
       nextDirectionRef.current = requestedDirection;
     }
-  }, [isRunning, isGameOver]);
+  }, [isRunning, isGameOver]); // DIRECTIONS, OPPOSITE_DIRECTIONS are module constants
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      let newDir = null;
-      switch (event.key.toLowerCase()) {
-        case 'arrowup': case 'w': newDir = 'UP'; break;
-        case 'arrowdown': case 's': newDir = 'DOWN'; break;
-        case 'arrowleft': case 'a': newDir = 'LEFT'; break;
-        case 'arrowright': case 'd': newDir = 'RIGHT'; break;
-        default: break;
-      }
+      const newDir = KEY_DIRECTIONS[event.key];
       if (newDir) {
         event.preventDefault();
         processDirectionChange(newDir);
@@ -113,53 +101,60 @@ export function useGameEngine({ onGameOver }) {
     const gameLoop = () => {
       currentDirectionRef.current = nextDirectionRef.current;
       setSnake(prevSnake => {
-        if (prevSnake.length === 0 && !isGameOver) return []; // Should not happen in normal flow
-        if (isGameOver) return prevSnake; // Prevent updates if game over was set mid-tick
+        if (isGameOver || prevSnake.length === 0) return prevSnake; 
 
         const newHead = { ...prevSnake[0] };
         const move = DIRECTIONS[currentDirectionRef.current];
         newHead.x += move.x;
         newHead.y += move.y;
 
+        let scoreForThisTick = score; // Use score from useEffect closure
+        let foodEatenThisTick = false;
+
+        if (newHead.x === food.x && newHead.y === food.y) {
+          foodEatenThisTick = true;
+          scoreForThisTick += 1;
+        }
+
+        // Wall collision
         if (newHead.x < 0 || newHead.x >= GRID_SIZE || newHead.y < 0 || newHead.y >= GRID_SIZE) {
           setIsGameOver(true);
           setIsRunning(false);
-          if (onGameOver) onGameOver(score);
+          if (onGameOver) onGameOver(scoreForThisTick);
           return prevSnake;
         }
 
+        // Self collision
         for (let i = 1; i < prevSnake.length; i++) {
           if (prevSnake[i].x === newHead.x && prevSnake[i].y === newHead.y) {
             setIsGameOver(true);
             setIsRunning(false);
-            if (onGameOver) onGameOver(score);
+            if (onGameOver) onGameOver(scoreForThisTick);
             return prevSnake;
           }
         }
 
-        const newSnake = [newHead, ...prevSnake];
+        const newSnakeUnpopped = [newHead, ...prevSnake];
 
-        if (newHead.x === food.x && newHead.y === food.y) {
-          setScore(s => s + 1);
+        if (foodEatenThisTick) {
+          setScore(s => s + 1); // Or setScore(scoreForThisTick)
           generateFood(); 
+          return newSnakeUnpopped;
         } else {
-          newSnake.pop(); 
+          newSnakeUnpopped.pop(); 
+          return newSnakeUnpopped;
         }
-        return newSnake;
       });
 
-      if (!isGameOver && isRunning) { // Double check flags before scheduling next tick
+      if (isRunning && !isGameOver) { 
          gameLoopTimeoutRef.current = setTimeout(gameLoop, GAME_SPEED_MS);
       }
     };
     
-    // Initial call to start the loop if not already over
-    if (!isGameOver && isRunning) {
-        gameLoopTimeoutRef.current = setTimeout(gameLoop, GAME_SPEED_MS);
-    }
+    gameLoopTimeoutRef.current = setTimeout(gameLoop, GAME_SPEED_MS);
 
     return () => clearTimeout(gameLoopTimeoutRef.current);
-  }, [isRunning, isGameOver, food, score, generateFood, onGameOver]); // Added food, score, generateFood as dependencies
+  }, [isRunning, isGameOver, food, score, generateFood, onGameOver]); 
 
   return {
     snake,
